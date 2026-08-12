@@ -15,10 +15,26 @@ if (isset($update["message"])) {
         sendMessage($chat_id, "You said: " . $text);
     }
 }
-
 function sendMessage($chat_id, $message)
 {
     global $apiURL;
 
-    file_get_contents($apiURL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($message));
+    $ch = curl_init($apiURL . "sendMessage");
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'chat_id' => $chat_id,
+        'text'    => $message,
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        error_log("Telegram API error: " . curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    return $response;
 }
